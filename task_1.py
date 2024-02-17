@@ -14,8 +14,16 @@ class Name(Field):
 
 
 class Phone(Field):
-    def is_valid(self):
-        return len(self.value) == 10
+    def __init__(self, value):
+        super().__init__(value)
+
+        if not self.is_valid(value):
+            raise ValueError
+
+        self.value = value
+
+    def is_valid(self, value):
+        return len(value) == 10 and value.isdigit()
 
 
 class Record:
@@ -36,29 +44,21 @@ class Record:
         return phone_index
 
     def add_phone(self, phone_str):
-        phone = Phone(phone_str)
-
-        if phone.is_valid():
-            self.phones.append(phone)
-        else:
-            print(f"{phone_str} is not valid.")
+        self.phones.append(Phone(phone_str))
 
     def remove_phone(self, phone_str):
         phone_index = self.__find_phone_index__(phone_str)
 
         if phone_index is None:
-            print(f"{phone_str} doesn't exist.")
+            raise ValueError
         else:
             del self.phones[phone_index]
 
     def edit_phone(self, old_phone, new_phone):
-        phone = Phone(new_phone)
         phone_index = self.__find_phone_index__(old_phone)
 
         if phone_index is None:
-            print(f"{old_phone} doesn't exist.")
-        elif not phone.is_valid():
-            print(f"{new_phone} is not valid.")
+            raise ValueError
         else:
             self.phones[phone_index] = Phone(new_phone)
 
@@ -66,7 +66,7 @@ class Record:
         phone_index = self.__find_phone_index__(phone_str)
 
         if phone_index is None:
-            return phone_index
+            raise ValueError
         else:
             return self.phones[phone_index]
 
@@ -76,7 +76,11 @@ class AddressBook(UserDict):
         self.data[record.name.value] = record
 
     def find(self, name):
-        return self.data[name]
+        if name in self.data.keys():
+            return self.data[name]
+        else:
+            return None
 
     def delete(self, name):
-        del self.data[name]
+        if name in self.data.keys():
+            del self.data[name]
